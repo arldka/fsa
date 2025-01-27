@@ -1,19 +1,20 @@
-# This series applies on Git commit ba47a29331467ba1a747a903ed441a0cea651d69
+# This series applies on Git commit a25c8a0eef7830be0c2c9074c92dbea8ff23a962
 01-allow-flux-and-oci-schemes.patch
 02-ui-fix-find-leaf-pod-bug.patch
 03-ui-show-kstatus-in-ui.patch
 04-show-custom-info.patch
 05-ui-add-resource-icons.patch
 06-ui-implement-health-checks-and.patch
-07-auto-create-flux-resources.patch
-08-add-flux-options-to-the-ui.patch
-09-support-helm-oci-and.patch
-10-add-open-in-weave-gitops.patch
-11-upgrade-to-flux-v2.0.0-rc.1.patch
-12-fix-branch-and-rev-info-of.patch
-13-change-logo-to-flamingo.patch
-14-override-workload-name-with.patch
-15-add-tilt-dev-support.patch
-16-fix-special-supported-schemes.patch
-17-allow-overriding-flux-object.patch
-18-patch-flux-2.3-object-versions.patch
+07-implement-loopback.patch
+08-auto-create-flux-resources.patch
+09-add-flux-options-to-the-ui.patch
+10-support-helm-oci-and.patch
+11-add-open-in-weave-gitops.patch
+12-upgrade-to-flux-v2.0.0-rc.1.patch
+13-fix-branch-and-rev-info-of.patch
+14-change-logo-to-flamingo.patch
+15-override-workload-name-with.patch
+16-add-tilt-dev-support.patch
+17-fix-special-supported-schemes.patch
+18-allow-overriding-flux-object.patch
+19-patch-flux-2.3-object-versions.patch
