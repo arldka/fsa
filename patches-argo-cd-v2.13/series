@@ -1,0 +1,19 @@
+# This series applies on Git commit ba47a29331467ba1a747a903ed441a0cea651d69
+01-allow-flux-and-oci-schemes.patch
+02-ui-fix-find-leaf-pod-bug.patch
+03-ui-show-kstatus-in-ui.patch
+04-show-custom-info.patch
+05-ui-add-resource-icons.patch
+06-ui-implement-health-checks-and.patch
+07-auto-create-flux-resources.patch
+08-add-flux-options-to-the-ui.patch
+09-support-helm-oci-and.patch
+10-add-open-in-weave-gitops.patch
+11-upgrade-to-flux-v2.0.0-rc.1.patch
+12-fix-branch-and-rev-info-of.patch
+13-change-logo-to-flamingo.patch
+14-override-workload-name-with.patch
+15-add-tilt-dev-support.patch
+16-fix-special-supported-schemes.patch
+17-allow-overriding-flux-object.patch
+18-patch-flux-2.3-object-versions.patch

@@ -1,0 +1,96 @@
+ui: fix find leaf pod bug
+
+From: Arthur Laurent <43825600+arldka@users.noreply.github.com>
+
+Signed-off-by: Arthur Laurent <43825600+arldka@users.noreply.github.com>
+---
+ .../resource-details/resource-details.tsx          |   11 +++--
+ ui/src/app/applications/components/utils.tsx       |   43 ++++++--------------
+ 2 files changed, 19 insertions(+), 35 deletions(-)
+
+diff --git a/ui/src/app/applications/components/resource-details/resource-details.tsx b/ui/src/app/applications/components/resource-details/resource-details.tsx
+index 59774fa45..3574da348 100644
+--- a/ui/src/app/applications/components/resource-details/resource-details.tsx
++++ b/ui/src/app/applications/components/resource-details/resource-details.tsx
+@@ -272,11 +272,12 @@ export const ResourceDetails = (props: ResourceDetailsProps) => {
+                         if (selectedNode.kind === 'Pod') {
+                             podState = liveState;
+                         } else {
+-                            const childPod = AppUtils.findChildPod(selectedNode, tree);
+-                            if (childPod) {
+-                                podState = await services.applications.getResource(application.metadata.name, application.metadata.namespace, childPod).catch(() => null);
+-                            }
+-                            childResources = AppUtils.findChildResources(selectedNode, tree);
++                            podState = null;
++                            // CK: findChildPod is expensive, so we only call it when we need to
++                            // const childPod = AppUtils.findChildPod(selectedNode, tree);
++                            // if (childPod) {
++                            //     podState = await services.applications.getResource(application.metadata.name, application.metadata.namespace, childPod).catch(() => null);
++                            // }
+                         }
+ 
+                         const settings = await services.authService.settings();
+diff --git a/ui/src/app/applications/components/utils.tsx b/ui/src/app/applications/components/utils.tsx
+index 038187e15..106c1c154 100644
+--- a/ui/src/app/applications/components/utils.tsx
++++ b/ui/src/app/applications/components/utils.tsx
+@@ -568,21 +568,14 @@ function getActionItems(
+         });
+     }
+ 
+-    const logsAction = services.accounts
+-        .canI('logs', 'get', application.spec.project + '/' + application.metadata.name)
+-        .then(async allowed => {
+-            if (allowed && (isPod || findChildPod(resource, tree))) {
+-                return [
+-                    {
+-                        title: 'Logs',
+-                        iconClassName: 'fa fa-fw fa-align-left',
+-                        action: () => apis.navigation.goto('.', {node: nodeKey(resource), tab: 'logs'}, {replace: true})
+-                    } as MenuItem
+-                ];
+-            }
+-            return [] as MenuItem[];
+-        })
+-        .catch(() => [] as MenuItem[]);
++    // CK: findChildPod(resource, tree) is too expensive, so we only call it for Pod resources
++    if (resource.kind === 'Pod') {
++        items.push({
++            title: 'Logs',
++            iconClassName: 'fa fa-fw fa-align-left',
++            action: () => apis.navigation.goto('.', {node: nodeKey(resource), tab: 'logs'}, {replace: true})
++        });
++    }
+ 
+     if (isQuickStart) {
+         return combineLatest(
+@@ -993,24 +986,14 @@ export const OperationState = ({app, quiet}: {app: appModels.Application; quiet?
+     );
+ };
+ 
+-function isPodInitializedConditionTrue(status: any): boolean {
+-    if (!status?.conditions) {
+-        return false;
+-    }
+-
+-    for (const condition of status.conditions) {
+-        if (condition.type !== 'Initialized') {
+-            continue;
++export function getKstatusCondition(conditionType: string, ks: appModels.State): {status: string; message: string; reason: string} {
++    for (const condition of ks.status.conditions) {
++        if (condition["type"] === conditionType) {
++            return {message: condition.message, reason: condition.reason, status: condition.status};
+         }
+-        return condition.status === 'True';
+     }
+ 
+-    return false;
+-}
+-
+-// isPodPhaseTerminal returns true if the pod's phase is terminal.
+-function isPodPhaseTerminal(phase: appModels.PodPhase): boolean {
+-    return phase === appModels.PodPhase.PodFailed || phase === appModels.PodPhase.PodSucceeded;
++    return undefined;
+ }
+ 
+ export function getPodStateReason(pod: appModels.State): {message: string; reason: string; netContainerStatuses: any[]} {

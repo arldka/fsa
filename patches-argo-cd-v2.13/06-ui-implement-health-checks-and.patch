@@ -1,0 +1,197 @@
+ui: implement health checks and actions
+
+From: Arthur Laurent <43825600+arldka@users.noreply.github.com>
+
+Signed-off-by: Arthur Laurent <43825600+arldka@users.noreply.github.com>
+---
+ .../actions/testdata/ks-requested.yaml             |   26 ++++++++++++++++
+ .../Kustomization/actions/testdata/ks.yaml         |   24 +++++++++++++++
+ .../kustomize.toolkit.fluxcd.io/health_test.yaml   |   13 ++++++++
+ .../actions/testdata/gitrepo-requested.yaml        |   33 ++++++++++++++++++++
+ .../GitRepository/actions/testdata/gitrepo.yaml    |   32 +++++++++++++++++++
+ .../source.toolkit.fluxcd.io/health_test.yaml      |   13 ++++++++
+ 6 files changed, 141 insertions(+)
+ create mode 100644 resource_customizations/kustomize.toolkit.fluxcd.io/Kustomization/actions/testdata/ks-requested.yaml
+ create mode 100644 resource_customizations/kustomize.toolkit.fluxcd.io/Kustomization/actions/testdata/ks.yaml
+ create mode 100644 resource_customizations/kustomize.toolkit.fluxcd.io/health_test.yaml
+ create mode 100644 resource_customizations/source.toolkit.fluxcd.io/GitRepository/actions/testdata/gitrepo-requested.yaml
+ create mode 100644 resource_customizations/source.toolkit.fluxcd.io/GitRepository/actions/testdata/gitrepo.yaml
+ create mode 100644 resource_customizations/source.toolkit.fluxcd.io/health_test.yaml
+
+diff --git a/resource_customizations/kustomize.toolkit.fluxcd.io/Kustomization/actions/testdata/ks-requested.yaml b/resource_customizations/kustomize.toolkit.fluxcd.io/Kustomization/actions/testdata/ks-requested.yaml
+new file mode 100644
+index 000000000..c24e3d7de
+--- /dev/null
++++ b/resource_customizations/kustomize.toolkit.fluxcd.io/Kustomization/actions/testdata/ks-requested.yaml
+@@ -0,0 +1,26 @@
++apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
++kind: Kustomization
++metadata:
++  name: my-secrets
++  namespace: default
++  annotations:
++    reconcile.fluxcd.io/requestedAt: "2022-02-27T20:12:28.222377213+07:00"
++spec:
++  interval: 5m
++  path: "./"
++  sourceRef:
++    kind: GitRepository
++    name: my-secrets
++  decryption:
++    provider: sops
++    secretRef:
++      name: sops-age
++status:
++  conditions:
++  - lastTransitionTime: "2020-09-17T19:28:48Z"
++    message: "Applied revision: master/a1afe267b54f38b46b487f6e938a6fd508278c07"
++    reason: ReconciliationSucceeded
++    status: "True"
++    type: Ready
++  lastAppliedRevision: master/a1afe267b54f38b46b487f6e938a6fd508278c07
++  lastAttemptedRevision: master/a1afe267b54f38b46b487f6e938a6fd508278c07
+diff --git a/resource_customizations/kustomize.toolkit.fluxcd.io/Kustomization/actions/testdata/ks.yaml b/resource_customizations/kustomize.toolkit.fluxcd.io/Kustomization/actions/testdata/ks.yaml
+new file mode 100644
+index 000000000..0fac5ad09
+--- /dev/null
++++ b/resource_customizations/kustomize.toolkit.fluxcd.io/Kustomization/actions/testdata/ks.yaml
+@@ -0,0 +1,24 @@
++apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
++kind: Kustomization
++metadata:
++  name: my-secrets
++  namespace: default
++spec:
++  interval: 5m
++  path: "./"
++  sourceRef:
++    kind: GitRepository
++    name: my-secrets
++  decryption:
++    provider: sops
++    secretRef:
++      name: sops-age
++status:
++  conditions:
++  - lastTransitionTime: "2020-09-17T19:28:48Z"
++    message: "Applied revision: master/a1afe267b54f38b46b487f6e938a6fd508278c07"
++    reason: ReconciliationSucceeded
++    status: "True"
++    type: Ready
++  lastAppliedRevision: master/a1afe267b54f38b46b487f6e938a6fd508278c07
++  lastAttemptedRevision: master/a1afe267b54f38b46b487f6e938a6fd508278c07
+diff --git a/resource_customizations/kustomize.toolkit.fluxcd.io/health_test.yaml b/resource_customizations/kustomize.toolkit.fluxcd.io/health_test.yaml
+new file mode 100644
+index 000000000..07ab00d08
+--- /dev/null
++++ b/resource_customizations/kustomize.toolkit.fluxcd.io/health_test.yaml
+@@ -0,0 +1,13 @@
++tests:
++- healthStatus:
++    status: Progressing
++    message: "Progressing - reconciliation in progress"
++  inputPath: testdata/progressing.yaml
++- healthStatus:
++    status: Degraded
++    message: "ValidationFailed - The Service 'backend' is invalid: spec.type: Unsupported value: 'Ingress'"
++  inputPath: testdata/degraded.yaml
++- healthStatus:
++    status: Healthy
++    message: "ReconciliationSucceeded - Applied revision: master/a1afe267b54f38b46b487f6e938a6fd508278c07"
++  inputPath: testdata/healthy.yaml
+diff --git a/resource_customizations/source.toolkit.fluxcd.io/GitRepository/actions/testdata/gitrepo-requested.yaml b/resource_customizations/source.toolkit.fluxcd.io/GitRepository/actions/testdata/gitrepo-requested.yaml
+new file mode 100644
+index 000000000..6eb6dc59d
+--- /dev/null
++++ b/resource_customizations/source.toolkit.fluxcd.io/GitRepository/actions/testdata/gitrepo-requested.yaml
+@@ -0,0 +1,33 @@
++apiVersion: source.toolkit.fluxcd.io/v1beta1
++kind: GitRepository
++metadata:
++  annotations:
++    inferred-parent-of: podinfo
++    reconcile.fluxcd.io/requestedAt: "2022-02-27T20:12:28.222377213+07:00"
++  labels:
++    app.kubernetes.io/instance: test-flux
++  name: podinfo
++  namespace: dev
++spec:
++  gitImplementation: go-git
++  interval: 1m0s
++  ref:
++    branch: master
++  timeout: 60s
++  url: https://github.com/openshift-fluxv2-poc/podinfo
++status:
++  artifact:
++    checksum: ce96832ef51e011795626ae68cbfe38deedcff64776e96af618840564a394f1a
++    lastUpdateTime: "2022-02-27T13:26:53Z"
++    path: gitrepository/dev/podinfo/b0cdff96de44592069f6b03d73573d3ca5df9794.tar.gz
++    revision: master/b0cdff96de44592069f6b03d73573d3ca5df9794
++    url: http://source-controller.flux-system.svc.cluster.local./gitrepository/dev/podinfo/b0cdff96de44592069f6b03d73573d3ca5df9794.tar.gz
++  conditions:
++  - lastTransitionTime: "2022-02-27T12:00:08Z"
++    message: 'Fetched revision: master/b0cdff96de44592069f6b03d73573d3ca5df9794'
++    reason: GitOperationSucceed
++    status: "True"
++    type: Ready
++  lastHandledReconcileAt: "2022-02-27T20:12:28.222377213+07:00"
++  observedGeneration: 2
++  url: http://source-controller.flux-system.svc.cluster.local./gitrepository/dev/podinfo/latest.tar.gz
+diff --git a/resource_customizations/source.toolkit.fluxcd.io/GitRepository/actions/testdata/gitrepo.yaml b/resource_customizations/source.toolkit.fluxcd.io/GitRepository/actions/testdata/gitrepo.yaml
+new file mode 100644
+index 000000000..19a172233
+--- /dev/null
++++ b/resource_customizations/source.toolkit.fluxcd.io/GitRepository/actions/testdata/gitrepo.yaml
+@@ -0,0 +1,32 @@
++apiVersion: source.toolkit.fluxcd.io/v1beta1
++kind: GitRepository
++metadata:
++  annotations:
++    inferred-parent-of: podinfo
++  labels:
++    app.kubernetes.io/instance: test-flux
++  name: podinfo
++  namespace: dev
++spec:
++  gitImplementation: go-git
++  interval: 1m0s
++  ref:
++    branch: master
++  timeout: 60s
++  url: https://github.com/openshift-fluxv2-poc/podinfo
++status:
++  artifact:
++    checksum: ce96832ef51e011795626ae68cbfe38deedcff64776e96af618840564a394f1a
++    lastUpdateTime: "2022-02-27T13:26:53Z"
++    path: gitrepository/dev/podinfo/b0cdff96de44592069f6b03d73573d3ca5df9794.tar.gz
++    revision: master/b0cdff96de44592069f6b03d73573d3ca5df9794
++    url: http://source-controller.flux-system.svc.cluster.local./gitrepository/dev/podinfo/b0cdff96de44592069f6b03d73573d3ca5df9794.tar.gz
++  conditions:
++  - lastTransitionTime: "2022-02-27T12:00:08Z"
++    message: 'Fetched revision: master/b0cdff96de44592069f6b03d73573d3ca5df9794'
++    reason: GitOperationSucceed
++    status: "True"
++    type: Ready
++  lastHandledReconcileAt: "2022-02-27T20:12:28.222377213+07:00"
++  observedGeneration: 2
++  url: http://source-controller.flux-system.svc.cluster.local./gitrepository/dev/podinfo/latest.tar.gz
+diff --git a/resource_customizations/source.toolkit.fluxcd.io/health_test.yaml b/resource_customizations/source.toolkit.fluxcd.io/health_test.yaml
+new file mode 100644
+index 000000000..4812cf55d
+--- /dev/null
++++ b/resource_customizations/source.toolkit.fluxcd.io/health_test.yaml
+@@ -0,0 +1,13 @@
++tests:
++- healthStatus:
++    status: Progressing
++    message: "Progressing - reconciliation in progress"
++  inputPath: testdata/progressing.yaml
++- healthStatus:
++    status: Degraded
++    message: "GitOperationFailed - unable to clone 'https://github.com/openshift-fluxv2-poc/podinfo': authentication required"
++  inputPath: testdata/degraded.yaml
++- healthStatus:
++    status: Healthy
++    message: "GitOperationSucceed - Fetched revision: master/b0cdff96de44592069f6b03d73573d3ca5df9794"
++  inputPath: testdata/healthy.yaml
